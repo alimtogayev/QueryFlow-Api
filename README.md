@@ -1,1 +1,29 @@
-The Query Service provides a clean, modular, and secure foundation for executing stored SQL queries through a Spring Boot backend. It demonstrates effective separation of layers, safe handling of database operations, and flexibility for future extensions. While the current implementation focuses on simplicity and read-only queries, it can be easily expanded with authentication, stronger validation, and a user interface to become a fully featured query management platform.
+Query Service
+
+Spring Boot backend for storing and safely executing SQL queries (only SELECT allowed).
+Includes example passenger data based on the Titanic dataset.
+
+Main Endpoints
+
+POST /queries — save a new SQL query
+
+GET /queries — get all stored queries
+
+GET /execute/{id} — execute a stored query
+
+POST /upload - upload dataset
+
+Tech Stack
+
+Java 17 · Spring Boot 3 · Spring Data JPA · JDBC · PostgreSQL · JUnit 5 · Mockito
+
+Architecture
+
+Controller → Service → Repository → Database
+(QueryController → QueryService → QueryRepo / PassengerRepo)
+
+
+
+Notes
+
+Only SELECT queries are allowed.
