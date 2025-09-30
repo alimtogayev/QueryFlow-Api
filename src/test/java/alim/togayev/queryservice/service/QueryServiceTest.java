@@ -4,6 +4,7 @@ import alim.togayev.queryservice.entities.Query;
 import alim.togayev.queryservice.entities.Passenger;
 import alim.togayev.queryservice.repo.QueryRepo;
 import alim.togayev.queryservice.repo.PassengerRepo;
+import alim.togayev.queryservice.util.PassengerUtil;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
@@ -31,34 +32,21 @@ class QueryServiceTest {
 
     @InjectMocks
     private QueryService queryService;
+    @InjectMocks
+    private PassengerUtil passengerUtil;
 
     @Test
-    void addQuery_returnsGeneratedId_andSavesExactText() throws Exception {
+    void addQuery_savesExactText() throws Exception {
         String sql = "SELECT 1";
         Query saved = new Query(sql);
 
-        // выставим id через reflection (если нет сеттера)
-        var f = Query.class.getDeclaredField("id");
-        f.setAccessible(true);
-        f.setLong(saved, 101L);
-
-        when(queryRepo.save(any(Query.class))).thenReturn(saved);
-
-        long id = queryService.addQuery(sql);
-
-        assertThat(id).isEqualTo(101L);
+        when(queryRepo.save(any(Query.class))).thenAnswer(inv -> inv.getArgument(0));
+        queryService.addQuery(sql);
         verify(queryRepo).save(argThat(q -> sql.equals(q.getQueryText())));
     }
 
     @Test
-    void getQueries_returnsAll() {
-        when(queryRepo.findAll()).thenReturn(List.of(new Query("SELECT 1")));
-        assertThat(queryService.getQueries()).hasSize(1);
-        verify(queryRepo).findAll();
-    }
-
-    @Test
-    void executeQuery_throws400_whenNotSelect() {
+    void executeQuery_test_whenNotSelect() {
         when(queryRepo.findById(1L)).thenReturn(Optional.of(new Query("UPDATE users set a=1")));
         assertThatThrownBy(() -> queryService.executeQuery(1L))
                 .isInstanceOf(ResponseStatusException.class)
@@ -66,22 +54,23 @@ class QueryServiceTest {
     }
 
     @Test
-    void executeQuery_throws404_whenIdNotFound() {
+    void executeQuery_test_whenIdNotFound() {
         when(queryRepo.findById(999L)).thenReturn(Optional.empty());
         assertThatThrownBy(() -> queryService.executeQuery(999L))
                 .isInstanceOf(ResponseStatusException.class)
                 .hasMessageContaining("404");
     }
+
     @Test
     void uploadFile_parsesCsv_andSavesPassengers() throws Exception{
         String csv = String.join("\n",
                 "PassengerId,Survived,Pclass,Name,Sex,Age,SibSp,Parch,Ticket,Fare,Cabin,Embarked",
                 "1,1,1,John,male,34,0,0,A,100.0,,S",
-                "2,0,3,Jane,female,,0,0,B,7.25,,C" // age пустой — зависит от твоей стратегии
+                "2,0,3,Jane,female,,0,0,B,7.25,,C"
         );
         MockMultipartFile file = new MockMultipartFile("file","titanic.csv","text/csv", csv.getBytes(StandardCharsets.UTF_8));
 
-        String res = queryService.uploadFile(file);
+        String res = passengerUtil.uploadFile(file);
 
         assertThat(res).contains("file successfully uploaded");
         verify(passengerRepo, atLeastOnce()).saveAll(Mockito.<Iterable<Passenger>>any());

@@ -1,17 +1,12 @@
 package alim.togayev.queryservice.service;
 
 import alim.togayev.queryservice.entities.Passenger;
-import alim.togayev.queryservice.entities.Person;
 import alim.togayev.queryservice.entities.Query;
 import alim.togayev.queryservice.repo.PassengerRepo;
 import alim.togayev.queryservice.repo.QueryRepo;
-import com.opencsv.bean.CsvToBean;
 import com.opencsv.bean.CsvToBeanBuilder;
-import com.opencsv.bean.HeaderColumnNameMappingStrategy;
-import lombok.NoArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -20,14 +15,11 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service
 public class QueryService {
@@ -75,22 +67,5 @@ public class QueryService {
             }
             return rows;
         });
-    }
-
-    public String uploadFile(MultipartFile file) throws IOException {
-        Set<Passenger> passengers = parseCsv(file);
-        passengerRepo.saveAll(passengers);
-        return "file successfully uploaded";
-    }
-
-    private Set<Passenger> parseCsv(MultipartFile file) throws IOException {
-        try(Reader reader = new BufferedReader(new InputStreamReader(file.getInputStream()))) {
-            return new HashSet<>(new CsvToBeanBuilder<Passenger>(reader)
-                    .withType(Passenger.class)                  // <-- маппим сразу в Student
-                    .withIgnoreEmptyLine(true)
-                    .withIgnoreLeadingWhiteSpace(true)
-                    .build()
-                    .parse());
-        }
     }
 }

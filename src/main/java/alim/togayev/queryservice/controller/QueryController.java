@@ -1,21 +1,23 @@
 package alim.togayev.queryservice.controller;
 
-import alim.togayev.queryservice.entities.Person;
 import alim.togayev.queryservice.entities.Query;
 import alim.togayev.queryservice.service.QueryService;
 
 import java.io.IOException;
 import java.util.List;
 
+import alim.togayev.queryservice.util.PassengerUtil;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 public class QueryController {
     private final QueryService queryService;
+    private final PassengerUtil passengerUtil;
 
-    public QueryController(QueryService queryService) {
+    public QueryController(QueryService queryService, PassengerUtil passengerUtil) {
         this.queryService = queryService;
+        this.passengerUtil = passengerUtil;
     }
 
     @PostMapping("/queries")
@@ -35,6 +37,6 @@ public class QueryController {
 
     @PostMapping(value = "/upload", consumes = {"multipart/form-data"})
     public String uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        return queryService.uploadFile(file);
+        return passengerUtil.uploadFile(file);
     }
 }
