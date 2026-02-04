@@ -1,4 +1,4 @@
-Query Service
+QueryFlow API
 
 Spring Boot backend for storing and safely executing SQL queries (only SELECT allowed).
 Includes example passenger data based on the Titanic dataset.
